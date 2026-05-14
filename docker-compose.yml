@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  # -----------------------------------------------------------------------
+  # RepoMind API
+  # -----------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: docker/app.Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    networks:
+      - repomind
+
+  # -----------------------------------------------------------------------
+  # ChromaDB — vector store
+  # -----------------------------------------------------------------------
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8001:8000"
+    volumes:
+      - chroma_data:/chroma/.chroma
+    environment:
+      - ALLOW_RESET=true
+    networks:
+      - repomind
+
+  # -----------------------------------------------------------------------
+  # Ollama — local LLM inference (optional, comment out if using OpenAI)
+  # -----------------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    profiles:
+      - ollama
+    networks:
+      - repomind
+
+networks:
+  repomind:
+    driver: bridge
+
+volumes:
+  chroma_data:
+  ollama_data:
